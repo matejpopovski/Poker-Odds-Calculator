@@ -1,6 +1,22 @@
 import tkinter as tk
 from tkinter import messagebox
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
+import os
+
+def create_poker_table_image():
+    # Define table dimensions
+    width, height = 600, 400
+    table_color = (0, 128, 0)  # Green color for the table
+
+    # Create a new image with a green background
+    table_image = Image.new("RGB", (width, height), table_color)
+
+    # Optional: Draw a border
+    draw = ImageDraw.Draw(table_image)
+    draw.rectangle([(5, 5), (width-5, height-5)], outline="white", width=5)
+
+    # Save the image
+    table_image.save("poker_table.png")
 
 class PokerCalculator:
     def __init__(self, root):
@@ -15,9 +31,13 @@ class PokerCalculator:
         tk.Radiobutton(root, text="9 Players", variable=self.player_count, value=9).pack()
 
         # Step 2: Create poker table area
-        self.table_frame = tk.Frame(root, width=600, height=400, bg="green")
+        self.table_frame = tk.Frame(root, width=600, height=400)
         self.table_frame.pack(pady=20)
-        tk.Label(self.table_frame, text="Poker Table", bg="green", font=("Arial", 16)).pack()
+
+        # Load poker table image
+        self.table_image = ImageTk.PhotoImage(Image.open("poker_table.png"))
+        self.table_background = tk.Label(self.table_frame, image=self.table_image)
+        self.table_background.place(x=0, y=0)
 
         # Step 3: Load card images
         self.card_images = self.load_card_images()
@@ -36,11 +56,13 @@ class PokerCalculator:
 
     def load_card_images(self):
         card_images = {}
-        # Adjust the path as necessary
-        card_names = ["AS", "KH", "QS", "JD", "10C", "9H", "8D", "7S", "6C"]  # Add more as needed
-        for card in card_names:
-            img = Image.open(f"images/{card}.png").resize((100, 140), Image.ANTIALIAS)
-            card_images[card] = ImageTk.PhotoImage(img)
+        # Load card images from "images/cards"
+        card_folder = "images/cards"
+        card_names = os.listdir(card_folder)  # List all files in the folder
+        for card_file in card_names:
+            if card_file.endswith(".png"):
+                img = Image.open(os.path.join(card_folder, card_file)).resize((100, 140), Image.LANCZOS)
+                card_images[card_file[:-4]] = ImageTk.PhotoImage(img)  # Remove .png from name
         return card_images
 
     def on_drag_start(self, event):
@@ -57,6 +79,7 @@ class PokerCalculator:
         event.widget.place(x=event.x_root - 50, y=event.y_root - 70, anchor="center")
 
 if __name__ == "__main__":
+    create_poker_table_image()  # Create poker table image before starting the GUI
     root = tk.Tk()
     poker_calculator = PokerCalculator(root)
     root.mainloop()
