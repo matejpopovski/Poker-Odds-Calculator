@@ -91,10 +91,26 @@ class PokerTable:
             self.community_spots.append(spot)
 
     def display_card_images(self):
-        """Displays card images in a grid below the table and makes them draggable."""
-        card_folder = 'images/cards'
-        suits = ['clubs', 'diamonds', 'hearts', 'spades']
-        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace']
+        """Loads card images from the 'images/cards' directory and displays them."""
+        card_folder = "images/cards"
+        for card_file in os.listdir(card_folder):
+            if card_file.endswith('.png'):
+                card_path = os.path.join(card_folder, card_file)
+                card_image = Image.open(card_path)
+                card_image = card_image.resize((50, 70), Image.LANCZOS)  # Use LANCZOS instead of ANTIALIAS
+                card_image = ImageTk.PhotoImage(card_image)
+                self.card_images.append(card_image)
+
+                card_label = tk.Label(self.card_frame, image=card_image, bg="green")
+                card_label.image = card_image  # Keep a reference
+                card_label.pack(side=tk.LEFT, padx=5, pady=5)
+
+                card_label.bind("<Button-1>", self.on_card_click)
+                card_label.bind("<B1-Motion>", self.on_card_drag)
+                card_label.bind("<ButtonRelease-1>", self.on_card_release)
+
+                self.card_labels.append(card_label)
+
 
         for row, suit in enumerate(suits):
             for col, rank in enumerate(ranks):
@@ -131,7 +147,7 @@ class PokerTable:
     def on_card_drag(self, event):
         """Handles card dragging."""
         x, y = self.root.winfo_pointerxy()
-        # Move the card above the cursor by 900 pixels
+        # Move the card above the cursor by 700 pixels
         self.current_card.place(x=x - 25, y=y - 35 - 700)  # Adjust based on card size
 
     def on_card_drop(self, event):
@@ -149,6 +165,16 @@ class PokerTable:
                 self.current_card.unbind("<B1-Motion>")
                 self.current_card.unbind("<ButtonRelease-1>")
                 break
+
+        # Check if dropped on the table
+        if not dropped_in_valid_spot:
+            if self.table_x0 < x < self.table_x1 and self.table_y0 < y < self.table_y1:
+                # Snap the card to the table (centered)
+                self.current_card.place(x=(self.table_x0 + self.table_x1) // 2 - 25, 
+                                        y=(self.table_y0 + self.table_y1) // 2 - 35)
+                dropped_in_valid_spot = True
+                self.current_card.unbind("<B1-Motion>")
+                self.current_card.unbind("<ButtonRelease-1>")
 
         if not dropped_in_valid_spot:
             # Return the card to its original grid position if not dropped in a valid spot
