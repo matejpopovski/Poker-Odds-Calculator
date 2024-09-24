@@ -47,9 +47,6 @@ class PokerTable:
 
         # For drag-and-drop functionality
         self.current_card = None
-        self.card_start_position = None
-        self.click_x = 0
-        self.click_y = 0
 
     def create_player_spots(self):
         """Creates 9 player spots for cards."""
@@ -124,23 +121,18 @@ class PokerTable:
     def on_card_click(self, event):
         """Triggered when a card is clicked."""
         self.current_card = event.widget
-        self.card_start_position = self.current_card.grid_info()
-
-        # Save the position where the click happens (within the card)
-        self.click_x = event.x
-        self.click_y = event.y
-
-        # Raise the card above other widgets
-        self.current_card.lift()
 
         # Remove the card from the grid layout
         self.current_card.grid_forget()
 
+        # Raise the card above other widgets
+        self.current_card.lift()
+
     def on_card_drag(self, event):
         """Handles card dragging."""
         x, y = self.root.winfo_pointerxy()
-        # Adjust position based on where the card was clicked, preventing the jump
-        self.current_card.place(x=x - self.click_x, y=y - self.click_y)
+        # Move the card above the cursor by 900 pixels
+        self.current_card.place(x=x - 25, y=y - 35 - 700)  # Adjust based on card size
 
     def on_card_drop(self, event):
         """Handles dropping the card in a valid spot."""
