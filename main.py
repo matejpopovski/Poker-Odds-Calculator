@@ -45,6 +45,9 @@ class PokerTable:
 
         # For drag-and-drop functionality
         self.current_card = None
+        self.card_start_position = None
+        self.offset_x = 0
+        self.offset_y = 0
 
     def create_player_spots(self):
         """Creates 9 player spots for cards."""
@@ -108,6 +111,9 @@ class PokerTable:
                     label.grid(row=row, column=col, padx=5, pady=5)
                     self.card_labels.append(label)
 
+                    # Save original position
+                    label.original_grid_info = label.grid_info()
+
                     # Bind drag events
                     label.bind("<Button-1>", self.on_card_click)
                     label.bind("<B1-Motion>", self.on_card_drag)
@@ -116,25 +122,39 @@ class PokerTable:
     def on_card_click(self, event):
         """Triggered when a card is clicked."""
         self.current_card = event.widget
+        self.card_start_position = self.current_card.grid_info()
+
+        # Save the mouse offset within the card to prevent jumping
+        self.offset_x = event.x
+        self.offset_y = event.y
+
         self.current_card.lift()
 
     def on_card_drag(self, event):
         """Handles card dragging."""
-        x, y = event.widget.winfo_pointerxy()
-        event.widget.place(x=x - 25, y=y - 35)
+        x, y = self.root.winfo_pointerxy()
+        self.current_card.place(x=x - self.offset_x, y=y - self.offset_y)
 
     def on_card_drop(self, event):
         """Handles dropping the card in a valid spot."""
-        x, y = event.widget.winfo_pointerxy()
+        x, y = self.root.winfo_pointerxy()
+        dropped_in_valid_spot = False
+
+        # Check if dropped in a valid player or community spot
         for spot in self.player_spots + self.community_spots:
             spot_coords = self.canvas.coords(spot)
             if spot_coords[0] < x < spot_coords[2] and spot_coords[1] < y < spot_coords[3]:
-                # Snap the card to the spot
-                event.widget.place(x=spot_coords[0] + 10, y=spot_coords[1] + 10)
-                return
+                # Snap the card to the spot and remove it from the grid
+                self.current_card.place(x=spot_coords[0] + 10, y=spot_coords[1] + 10)
+                dropped_in_valid_spot = True
+                self.current_card.unbind("<B1-Motion>")
+                self.current_card.unbind("<ButtonRelease-1>")
+                break
 
-        # If no valid spot, return the card to its original position in the grid
-        event.widget.place_forget()
+        if not dropped_in_valid_spot:
+            # Return the card to its original grid position if not dropped in a valid spot
+            self.current_card.place_forget()
+            self.current_card.grid(**self.current_card.original_grid_info)
 
 if __name__ == "__main__":
     root = tk.Tk()
