@@ -1,7 +1,7 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import os
-import math  # Add this import to fix the error
+import math  
 
 def create_poker_table():
     # Initialize the main window
