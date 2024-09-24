@@ -7,8 +7,8 @@ class PokerTable:
     def __init__(self, root):
         self.root = root
         self.root.title("Poker Table")
-        
-        # Create canvas and card frame
+
+        # Create canvas for poker table
         self.canvas_width = 800
         self.canvas_height = 600
         self.canvas = tk.Canvas(self.root, width=self.canvas_width, height=self.canvas_height)
@@ -38,16 +38,18 @@ class PokerTable:
         # Create community card spots (flop, turn, river)
         self.create_community_card_spots()
 
-        # Display card images
+        # Create a frame for card images
         self.card_frame = tk.Frame(self.root, bg="green")
         self.card_frame.pack(side=tk.BOTTOM)
+
+        # Display card images
         self.display_card_images()
 
         # For drag-and-drop functionality
         self.current_card = None
         self.card_start_position = None
-        self.offset_x = 0
-        self.offset_y = 0
+        self.click_x = 0
+        self.click_y = 0
 
     def create_player_spots(self):
         """Creates 9 player spots for cards."""
@@ -124,16 +126,21 @@ class PokerTable:
         self.current_card = event.widget
         self.card_start_position = self.current_card.grid_info()
 
-        # Save the mouse offset within the card to prevent jumping
-        self.offset_x = event.x
-        self.offset_y = event.y
+        # Save the position where the click happens (within the card)
+        self.click_x = event.x
+        self.click_y = event.y
 
+        # Raise the card above other widgets
         self.current_card.lift()
+
+        # Remove the card from the grid layout
+        self.current_card.grid_forget()
 
     def on_card_drag(self, event):
         """Handles card dragging."""
         x, y = self.root.winfo_pointerxy()
-        self.current_card.place(x=x - self.offset_x, y=y - self.offset_y)
+        # Adjust position based on where the card was clicked, preventing the jump
+        self.current_card.place(x=x - self.click_x, y=y - self.click_y)
 
     def on_card_drop(self, event):
         """Handles dropping the card in a valid spot."""
