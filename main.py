@@ -12,6 +12,7 @@ def get_valid_input(prompt, valid_range):
         except ValueError:
             print("Invalid input. Please enter a number.")
 
+
 def get_cards_input(player_count, board=False):
     cards = []
     for i in range(1, player_count + 1 if not board else 2):
