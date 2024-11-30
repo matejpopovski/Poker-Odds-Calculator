@@ -33,6 +33,7 @@ def get_cards_input(player_count, board=False):
                 print("Invalid number of cards. Try again.")
     return cards
 
+
 def calculate_winning_percentage(player_hands, board_cards):
     # Placeholder for actual computation
     # You'd integrate a poker equity calculator or Monte Carlo simulation
